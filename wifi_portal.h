@@ -1,6 +1,11 @@
-#ifndef WIFI_PORTAL_H
-#define WIFI_PORTAL_H
+#pragma once
 
-void startWiFiWithPortal();  // Connecte ou lance le portail captif
+#include <Arduino.h>
 
-#endif
+bool startWiFiWithPortal();
+bool saveWiFiCredentials(const String &ssid, const String &password);
+bool loadWiFiCredentials(String &ssid, String &password);
+void forgetWiFiCredentials();
+bool isPortalActive();
+void handleWiFiPortal();
+
