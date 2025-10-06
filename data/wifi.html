@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Configuration Wi-Fi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 400px;
+      margin: 2em auto;
+      padding: 1em;
+    }
+    h2 {
+      text-align: center;
+    }
+    label {
+      font-weight: bold;
+      margin-top: 1em;
+      display: block;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 0.8em;
+      margin-top: 0.3em;
+      margin-bottom: 1em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1em;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h2>Connexion Wi-Fi</h2>
+
+  <form id="wifiForm">
+    <label for="scan">Réseaux détectés</label>
+    <select id="scan" onchange="document.getElementById('ssid').value = this.value">
+      <option disabled selected>🔍 Cliquez sur "Scanner"</option>
+    </select>
+    <button type="button" onclick="scanWiFi()">🔍 Scanner les réseaux</button>
+
+    <label for="ssid">Nom du Wi-Fi (SSID)</label>
+    <input type="text" id="ssid" name="ssid" required>
+
+    <label for="password">Mot de passe</label>
+    <input type="password" id="password" name="password" required>
+
+    <button type="submit">✅ Sauvegarder et redémarrer</button>
+  </form>
+
+  <script>
+    async function scanWiFi() {
+      const response = await fetch('/scan');
+      const networks = await response.json();
+      const select = document.getElementById('scan');
+      select.innerHTML = '<option disabled selected>-- Choisir un réseau --</option>';
+      networks.forEach(net => {
+        const option = document.createElement('option');
+        option.value = net.ssid;
+        option.textContent = `${net.ssid} (${net.rssi} dBm)`;
+        select.appendChild(option);
+      });
+    }
+
+    document.getElementById('wifiForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const ssid = document.getElementById('ssid').value;
+      const password = document.getElementById('password').value;
+
+      const res = await fetch('/save_wifi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `ssid=${encodeURIComponent(ssid)}&password=${encodeURIComponent(password)}`
+      });
+
+      const txt = await res.text();
+      alert(txt || "Redémarrage...");
+      setTimeout(() => location.reload(), 3000);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cue Light</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Cue Light</h1>
+
+    <div class="cue" id="cue0">
+      <label for="text0">Texte Cue 1</label>
+      <input type="text" id="text0" placeholder="Entrez le texte">
+      <button onclick="sendCue(0)">🚨 Envoyer Cue 1</button>
+    </div>
+
+    <div class="cue" id="cue1">
+      <label for="text1">Texte Cue 2</label>
+      <input type="text" id="text1" placeholder="Entrez le texte">
+      <button onclick="sendCue(1)">🚨 Envoyer Cue 2</button>
+    </div>
+
+    <div class="cue" id="cue2">
+      <label for="text2">Texte Cue 3</label>
+      <input type="text" id="text2" placeholder="Entrez le texte">
+      <button onclick="sendCue(2)">🚨 Envoyer Cue 3</button>
+    </div>
+
+    <div class="status" id="status">🕓 Connexion WebSocket...</div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
