@@ -1,13 +1,15 @@
-#include "config.h"
+#pragma once
+
 #include <Arduino.h>
 
-#ifndef CUES_H
-#define CUES_H
+#include "config.h"
 
 extern String cueTexts[CUE_COUNT];
 
 void initCues();
 void updateCues();
-void triggerCue(int index);
-
-#endif
+void triggerCue(size_t index);
+void setCueText(size_t index, const String &text, bool persist = true);
+bool isCueActive(size_t index);
+String buildCueSnapshotJson();
+String buildCueStateJson(size_t index);

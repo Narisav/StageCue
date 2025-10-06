@@ -1,36 +1,145 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <title>Cue Light</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div class="container">
-    <h1>Cue Light</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <title>StageCue • Contrôle lumière</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="container" role="main" aria-labelledby="appTitle">
+      <header class="app-header">
+        <h1 id="appTitle">StageCue</h1>
+        <p class="subtitle">Pilotage sécurisé des voyants de scène</p>
+      </header>
 
-    <div class="cue" id="cue0">
-      <label for="text0">Texte Cue 1</label>
-      <input type="text" id="text0" placeholder="Entrez le texte">
-      <button onclick="sendCue(0)">🚨 Envoyer Cue 1</button>
-    </div>
+      <section
+        class="connection-panel"
+        id="connectionPanel"
+        role="status"
+        aria-live="polite"
+      >
+        <span class="status-indicator status-indicator--pending" id="connectionIndicator"></span>
+        <div>
+          <strong id="connectionLabel">Connexion en cours…</strong>
+          <p id="connectionDetails" class="status-details">
+            Tentative d'ouverture du WebSocket sécurisé…
+          </p>
+        </div>
+      </section>
 
-    <div class="cue" id="cue1">
-      <label for="text1">Texte Cue 2</label>
-      <input type="text" id="text1" placeholder="Entrez le texte">
-      <button onclick="sendCue(1)">🚨 Envoyer Cue 2</button>
-    </div>
+      <section class="token-card" aria-labelledby="tokenTitle">
+        <div class="token-card__header">
+          <h2 id="tokenTitle">Authentification</h2>
+          <p class="status-details">
+            Configurez le jeton partagé pour sécuriser les appels API et WebSocket.
+          </p>
+        </div>
+        <form id="tokenForm" autocomplete="off">
+          <label for="tokenInput">Jeton d'accès</label>
+          <div class="token-field">
+            <input
+              type="password"
+              id="tokenInput"
+              name="token"
+              required
+              minlength="6"
+              aria-describedby="tokenHelp"
+            />
+            <button type="submit" class="secondary">Mettre à jour</button>
+          </div>
+          <p id="tokenHelp" class="status-details">
+            Ce jeton est stocké localement dans votre navigateur.
+          </p>
+        </form>
+      </section>
 
-    <div class="cue" id="cue2">
-      <label for="text2">Texte Cue 3</label>
-      <input type="text" id="text2" placeholder="Entrez le texte">
-      <button onclick="sendCue(2)">🚨 Envoyer Cue 3</button>
-    </div>
+      <section class="cue-grid" aria-label="Liste des cues disponibles">
+        <article class="cue" data-index="0">
+          <header>
+            <h2>Cue 1</h2>
+            <span class="cue-status" aria-live="polite">Inactive</span>
+          </header>
+          <label for="text0">Texte affiché</label>
+          <textarea
+            id="text0"
+            name="text0"
+            rows="2"
+            maxlength="64"
+            placeholder="Entrez le texte transmis à l'afficheur"
+            aria-describedby="help0"
+          ></textarea>
+          <p id="help0" class="status-details">64 caractères maximum.</p>
+          <div class="cue-actions">
+            <button type="button" data-action="save">💾 Enregistrer</button>
+            <button type="button" data-action="trigger" class="primary">
+              🚨 Déclencher
+            </button>
+          </div>
+        </article>
 
-    <div class="status" id="status">🕓 Connexion WebSocket...</div>
-  </div>
+        <article class="cue" data-index="1">
+          <header>
+            <h2>Cue 2</h2>
+            <span class="cue-status" aria-live="polite">Inactive</span>
+          </header>
+          <label for="text1">Texte affiché</label>
+          <textarea
+            id="text1"
+            name="text1"
+            rows="2"
+            maxlength="64"
+            placeholder="Entrez le texte transmis à l'afficheur"
+            aria-describedby="help1"
+          ></textarea>
+          <p id="help1" class="status-details">64 caractères maximum.</p>
+          <div class="cue-actions">
+            <button type="button" data-action="save">💾 Enregistrer</button>
+            <button type="button" data-action="trigger" class="primary">
+              🚨 Déclencher
+            </button>
+          </div>
+        </article>
 
-  <script src="app.js"></script>
-</body>
+        <article class="cue" data-index="2">
+          <header>
+            <h2>Cue 3</h2>
+            <span class="cue-status" aria-live="polite">Inactive</span>
+          </header>
+          <label for="text2">Texte affiché</label>
+          <textarea
+            id="text2"
+            name="text2"
+            rows="2"
+            maxlength="64"
+            placeholder="Entrez le texte transmis à l'afficheur"
+            aria-describedby="help2"
+          ></textarea>
+          <p id="help2" class="status-details">64 caractères maximum.</p>
+          <div class="cue-actions">
+            <button type="button" data-action="save">💾 Enregistrer</button>
+            <button type="button" data-action="trigger" class="primary">
+              🚨 Déclencher
+            </button>
+          </div>
+        </article>
+      </section>
+
+      <section class="log-panel" aria-labelledby="logTitle">
+        <header>
+          <h2 id="logTitle">Historique</h2>
+          <button type="button" id="clearLog" class="secondary">Vider</button>
+        </header>
+        <ul id="eventLog" class="log-list" aria-live="polite"></ul>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <small>
+        Firmware StageCue – Sécurisé &amp; supervisé.
+      </small>
+    </footer>
+
+    <script src="app.js" type="module"></script>
+  </body>
 </html>
