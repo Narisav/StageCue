@@ -8,11 +8,16 @@ void setup() {
   Serial.begin(115200);
   initDisplay();
   initCues();
-  // connectToWiFi();
-  startWiFiWithPortal();  // à la place de connectToWiFi()
+  const bool wifiConnected = startWiFiWithPortal();
+  if (wifiConnected) {
+    Serial.println("[Core] ✅ Connecté au Wi-Fi");
+  } else {
+    Serial.println("[Core] ⚠️ Portail Wi-Fi actif");
+  }
   startWebServer();
 }
 
 void loop() {
   updateCues();
+  handleWiFiPortal();
 }

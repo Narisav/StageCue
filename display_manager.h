@@ -1,9 +1,8 @@
+#pragma once
+
 #include <Arduino.h>
 
-#ifndef DISPLAY_MANAGER_H
-#define DISPLAY_MANAGER_H
-
 void initDisplay();
-void updateDisplay(int index, const String &text);
+void updateDisplay(size_t index, const String &text);
+bool isDisplayReady(size_t index);
 
-#endif
