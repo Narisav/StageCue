@@ -1,10 +1,26 @@
 #include "web_server.h"
 
+#ifndef __has_include
+#define __has_include(x) 0
+#define STAGECUE_ASSUME_FS_HEADERS 1
+#endif
+
 #include <ArduinoJson.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <FS.h>
+#if __has_include(<LittleFS.h>) || defined(STAGECUE_ASSUME_FS_HEADERS)
 #include <LittleFS.h>
+#define STAGECUE_HAS_LITTLEFS 1
+#else
+#define STAGECUE_HAS_LITTLEFS 0
+#endif
+#if __has_include(<SPIFFS.h>) || defined(STAGECUE_ASSUME_FS_HEADERS)
+#include <SPIFFS.h>
+#define STAGECUE_HAS_SPIFFS 1
+#else
+#define STAGECUE_HAS_SPIFFS 0
+#endif
 #include <WiFi.h>
 #include <esp_system.h>
 
@@ -19,13 +35,16 @@ AsyncWebSocket ws("/ws");
 namespace {
 
 bool fsMounted = false;
+fs::FS *activeFs = nullptr;
 
-bool mountLittleFs() {
+bool mountFileSystem() {
   if (fsMounted) {
     return true;
   }
 
+#if STAGECUE_HAS_LITTLEFS
   if (LittleFS.begin(false)) {
+    activeFs = &LittleFS;
     fsMounted = true;
     Serial.println("[FS] ✅ LittleFS monté");
     return true;
@@ -33,12 +52,32 @@ bool mountLittleFs() {
 
   Serial.println("[FS] ⚠️ Échec de montage de LittleFS, tentative de formatage...");
   if (LittleFS.format() && LittleFS.begin(false)) {
+    activeFs = &LittleFS;
     fsMounted = true;
     Serial.println("[FS] ✅ LittleFS formaté et monté");
     return true;
   }
+#endif
 
-  Serial.println("[FS] ❌ Impossible de monter LittleFS");
+#if STAGECUE_HAS_SPIFFS
+  Serial.println("[FS] ℹ️ Bascule vers SPIFFS");
+  if (SPIFFS.begin(false)) {
+    activeFs = &SPIFFS;
+    fsMounted = true;
+    Serial.println("[FS] ✅ SPIFFS monté");
+    return true;
+  }
+
+  Serial.println("[FS] ⚠️ Échec de montage de SPIFFS, tentative de formatage...");
+  if (SPIFFS.format() && SPIFFS.begin(false)) {
+    activeFs = &SPIFFS;
+    fsMounted = true;
+    Serial.println("[FS] ✅ SPIFFS formaté et monté");
+    return true;
+  }
+#endif
+
+  Serial.println("[FS] ❌ Aucun système de fichiers disponible");
   return false;
 }
 
@@ -274,18 +313,24 @@ void onWebSocketEvent(AsyncWebSocket *serverPtr, AsyncWebSocketClient *client,
 }
 
 void startWebServer() {
-  if (!mountLittleFs()) {
+  if (!mountFileSystem()) {
     Serial.println("[Web] ⚠️ Lancement du serveur sans fichiers statiques");
   }
 
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
 
-  auto &rootHandler = server.serveStatic("/", LittleFS, "/");
-  rootHandler.setDefaultFile("index.html");
-  rootHandler.setCacheControl("max-age=300");
+  if (fsMounted && activeFs != nullptr) {
+    auto &rootHandler = server.serveStatic("/", *activeFs, "/");
+    rootHandler.setDefaultFile("index.html");
+    rootHandler.setCacheControl("max-age=300, must-revalidate");
 
-  auto &wifiHandler = server.serveStatic("/wifi", LittleFS, "/wifi.html");
-  wifiHandler.setCacheControl("max-age=60");
+    auto &wifiHandler = server.serveStatic("/wifi", *activeFs, "/wifi.html");
+    wifiHandler.setCacheControl("max-age=60");
+  } else {
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+      request->send(503, "text/plain", "Interface non disponible : téléversez les fichiers SPIFFS/LittleFS");
+    });
+  }
 
   server.on("/trigger", HTTP_POST, [](AsyncWebServerRequest *request) {
     if (!requireAuth(request)) {

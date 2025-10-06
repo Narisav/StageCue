@@ -5,10 +5,15 @@ const char DEVICE_NAME[] = "StageCue";
 
 const char *defaultCueTexts[CUE_COUNT] = {"Cue 1", "Cue 2", "Cue 3"};
 
-const uint8_t displayAddresses[CUE_COUNT] = {
-    OLED_ADDRESS,
-    static_cast<uint8_t>(OLED_ADDRESS + 1),
-    static_cast<uint8_t>(OLED_ADDRESS + 2)};
+const uint8_t displayAddresses[CUE_COUNT] = {0x3C, 0x3D, 0x3E};
 
-const int cueLEDs[CUE_COUNT] = {25, 26, 27};
-const int cueButtons[CUE_COUNT] = {32, 33, 34};
+// Broches par défaut pour un ESP32-C6 DevKitC : ajustez selon votre câblage.
+const int cueLEDs[CUE_COUNT] = {18, 19, 20};
+const int cueButtons[CUE_COUNT] = {1, 2, 3};
+
+static_assert(sizeof(cueLEDs) / sizeof(cueLEDs[0]) == CUE_COUNT,
+              "cueLEDs doit contenir une entrée par cue");
+static_assert(sizeof(cueButtons) / sizeof(cueButtons[0]) == CUE_COUNT,
+              "cueButtons doit contenir une entrée par cue");
+static_assert(sizeof(displayAddresses) / sizeof(displayAddresses[0]) == CUE_COUNT,
+              "displayAddresses doit contenir une entrée par cue");

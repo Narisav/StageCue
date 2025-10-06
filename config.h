@@ -3,7 +3,7 @@
 #include <Arduino.h>
 
 // -----------------------------------------------------------------------------
-// Réseaux Wi-Fi
+// Configuration réseau
 // -----------------------------------------------------------------------------
 // Identifiants utilisés lorsque l'appareil agit comme station (mode STA).
 #define WIFI_SSID "TON_SSID"
@@ -17,6 +17,8 @@
 constexpr uint32_t WIFI_CONNECT_TIMEOUT_MS = 15000;
 // Nombre maximal de tentatives complètes avant de basculer en mode portail.
 constexpr uint8_t WIFI_MAX_RETRIES = 3;
+// Désactive l'économie d'énergie Wi-Fi pour une latence minimale.
+constexpr bool WIFI_DISABLE_SLEEP = true;
 
 // -----------------------------------------------------------------------------
 // Authentification API & WebSocket
@@ -25,13 +27,16 @@ extern const char API_AUTH_TOKEN[];  // Jeton partagé entre le firmware et le f
 extern const char DEVICE_NAME[];     // Nom réseau annoncé par l'appareil.
 
 // -----------------------------------------------------------------------------
-// Gestion des écrans OLED
+// Gestion matérielle – compatible ESP32-C6
 // -----------------------------------------------------------------------------
+constexpr size_t CUE_COUNT = 3;
+
+// Bus I2C utilisé pour les écrans OLED (brochage par défaut du DevKit ESP32-C6).
+constexpr int I2C_SDA_PIN = 23;
+constexpr int I2C_SCL_PIN = 22;
+
 constexpr uint8_t SCREEN_WIDTH = 128;
 constexpr uint8_t SCREEN_HEIGHT = 64;
-constexpr uint8_t OLED_ADDRESS = 0x3C;
-
-constexpr size_t CUE_COUNT = 3;
 
 extern const uint8_t displayAddresses[CUE_COUNT];
 
@@ -59,3 +64,4 @@ constexpr uint32_t WS_CLIENT_CLEANUP_INTERVAL_MS = 10000;
 // -----------------------------------------------------------------------------
 extern const int cueLEDs[CUE_COUNT];
 extern const int cueButtons[CUE_COUNT];
+

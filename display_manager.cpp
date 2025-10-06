@@ -94,7 +94,8 @@ void renderWrappedText(Adafruit_SSD1306 &display, const String &text) {
 }  // namespace
 
 void initDisplay() {
-  Wire.begin();
+  Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
+  Wire.setClock(400000);
 
   for (size_t i = 0; i < CUE_COUNT; ++i) {
     states[i].address = displayAddresses[i];

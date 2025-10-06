@@ -293,4 +293,9 @@ button:active {
     width: 100%;
     justify-content: center;
   }
+
+  .cue-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }

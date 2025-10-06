@@ -3,6 +3,9 @@
 #include <DNSServer.h>
 #include <Preferences.h>
 #include <WiFi.h>
+#if defined(ESP_PLATFORM)
+#include <esp_wifi.h>
+#endif
 
 #include "config.h"
 
@@ -38,6 +41,20 @@ void stopPortal() {
   }
 }
 
+void applyWiFiPowerSettings() {
+  if (WIFI_DISABLE_SLEEP) {
+#if defined(CONFIG_IDF_TARGET_ESP32C6) || defined(ARDUINO_ESP32C6_DEVKITC) || defined(ARDUINO_ESP32C6_DEV)
+#if defined(WIFI_POWER_19_5dBm)
+    WiFi.setTxPower(WIFI_POWER_19_5dBm);
+#endif
+#endif
+    WiFi.setSleep(false);
+#if defined(ESP_PLATFORM)
+    esp_wifi_set_ps(WIFI_PS_NONE);
+#endif
+  }
+}
+
 bool connectToNetwork(const String &ssid, const String &password) {
   if (ssid.isEmpty()) {
     return false;
@@ -46,10 +63,13 @@ bool connectToNetwork(const String &ssid, const String &password) {
   WiFi.mode(WIFI_STA);
   WiFi.persistent(false);
   WiFi.setHostname(DEVICE_NAME);
+  applyWiFiPowerSettings();
 
   Serial.printf("[WiFi] 🔌 Connexion au réseau '%s'\n", ssid.c_str());
 
   for (uint8_t attempt = 0; attempt < WIFI_MAX_RETRIES; ++attempt) {
+    WiFi.disconnect(true, true);
+    delay(50);
     WiFi.begin(ssid.c_str(), password.isEmpty() ? nullptr : password.c_str());
 
     const uint32_t start = millis();
@@ -74,6 +94,12 @@ bool connectToNetwork(const String &ssid, const String &password) {
 
 void startPortalMode() {
   WiFi.mode(WIFI_AP_STA);
+  applyWiFiPowerSettings();
+
+  IPAddress apIp(192, 168, 4, 1);
+  IPAddress netMask(255, 255, 255, 0);
+  IPAddress gateway = apIp;
+  WiFi.softAPConfig(apIp, gateway, netMask);
 
   if (!WiFi.softAP(FALLBACK_AP_SSID, FALLBACK_AP_PASS)) {
     Serial.println("[WiFi] ❌ Échec d'activation du point d'accès sécurisé, tentative sans mot de passe");
@@ -84,6 +110,7 @@ void startPortalMode() {
   }
 
   portalIp = WiFi.softAPIP();
+  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   dnsServer.start(kDnsPort, "*", portalIp);
   portalModeActive = true;
 
